@@ -14,7 +14,8 @@ Após a compilação, execute a calculadora com o seguinte comando:
 java CalculadoraApp
 ```
 
-# 1. Compilação para um arquivo executável distribuível
+# Compilação para um arquivo executável distribuível
+## 1. Compilando a Aplicação
 Compilando a Aplicação Java:
 ``` bash
 javac -d out src\*.java
@@ -39,10 +40,6 @@ jpackage --name CalculadoraApp --input . --main-jar CalculadoraApp.jar --main-cl
 No Windows, para um instalador:
 ``` bash
 jpackage --name CalculadoraApp --input . --main-jar CalculadoraApp.jar --main-class CalculadoraApp --type exe
-```
-Ou um executável (o mesmo para o linux):
-``` bash 
-jpackage --name CalculadoraApp --input . --main-jar CalculadoraApp.jar --main-class CalculadoraApp --type app-image
 ```
 
 *Nota: para o executável no Windows, o jpackage necessita do WiX Toolset para as ferramentas do **light.exe** e **candle.exe** *
