@@ -1,9 +1,11 @@
 import javax.swing.*;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 
 public class CalculadoraInterface extends JFrame implements ActionListener {
     private JTextField display;
@@ -17,30 +19,13 @@ public class CalculadoraInterface extends JFrame implements ActionListener {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Display
+        // Display editável para permitir uso de teclas Delete, Backspace, Ctrl+C e Ctrl+V
         display = new JTextField();
-        display.setEditable(false);
         display.setFont(new Font("Arial", Font.BOLD, 24));
         add(display, BorderLayout.NORTH);
 
-        // Configura o KeyListener para capturar teclas de operação e números
-        this.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                char keyChar = e.getKeyChar();
-                if (Character.isDigit(keyChar) || keyChar == '.') {
-                    adicionarAoDisplay(String.valueOf(keyChar));
-                } else if (keyChar == '+' || keyChar == '-' || keyChar == '*' || keyChar == '/') {
-                    definirOperador(String.valueOf(keyChar));
-                } else if (e.getKeyCode() == KeyEvent.VK_ENTER) { // Enter para "="
-                    calcularResultado();
-                } else if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-                    apagarUltimoCaractere();
-                } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) { // Esc para "C"
-                    limparDisplay();
-                }
-            }
-        });
+        // Filtro para controlar os caracteres válidos no display
+        ((AbstractDocument) display.getDocument()).setDocumentFilter(new CalculadoraDocumentFilter());
 
         // Painel de botões
         JPanel painel = new JPanel();
@@ -62,8 +47,8 @@ public class CalculadoraInterface extends JFrame implements ActionListener {
 
         add(painel, BorderLayout.CENTER);
 
-        setFocusable(true);
-        requestFocusInWindow();
+        display.setFocusable(true);
+        display.requestFocusInWindow();
     }
 
     @Override
@@ -76,6 +61,10 @@ public class CalculadoraInterface extends JFrame implements ActionListener {
             calcularResultado();
         } else if (comando.equals("+") || comando.equals("-") || comando.equals("*") || comando.equals("/")) {
             definirOperador(comando);
+        } else if (comando.equals(".")) {
+            if (!display.getText().contains(".")) {
+                adicionarAoDisplay(comando);
+            }
         } else {
             adicionarAoDisplay(comando);
         }
@@ -121,10 +110,24 @@ public class CalculadoraInterface extends JFrame implements ActionListener {
         novaOperacao = true;
     }
 
-    private void apagarUltimoCaractere() {
-        String texto = display.getText();
-        if (!texto.isEmpty()) {
-            display.setText(texto.substring(0, texto.length() - 1));
+    // Filtro para controlar o que pode ser digitado no JTextField
+    class CalculadoraDocumentFilter extends DocumentFilter {
+        @Override
+        public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+            if (isValidInput(string)) {
+                super.insertString(fb, offset, string, attr);
+            }
+        }
+
+        @Override
+        public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+            if (isValidInput(text)) {
+                super.replace(fb, offset, length, text, attrs);
+            }
+        }
+
+        private boolean isValidInput(String text) {
+            return text.matches("[0-9\\.+\\-*/]*"); // Permite números, operadores e ponto
         }
     }
 }
